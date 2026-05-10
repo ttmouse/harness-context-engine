@@ -1,7 +1,6 @@
 # Evals
 
-Self-test cases for harness-context-engine. Each eval tests a specific capability
-against a controlled fixture project.
+Self-test cases for harness-context-engine. Each eval tests a specific capability or behavior against a controlled fixture project.
 
 ## Eval Definitions
 
@@ -18,11 +17,13 @@ Defined in `evals.json`. Each entry describes:
 
 | Name | Tests | Fixture | Runnable? |
 |---|---|---|---|
-| `generate_simple_project_harness` | Generate produces correct minimal harness | `fixtures/simple-react-project` | Partial (requires model) |
+| `generate_simple_project_harness` | Generate produces a Project Profile and minimal harness | `fixtures/simple-react-project` | Partial (requires model) |
 | `evaluate_fake_adr` | Evaluate rejects invented ADR | `fixtures/harness-with-fake-adr` | Partial (requires model) |
 | `sync_new_route` | Sync detects new module/route | `fixtures/project-with-new-route` | Partial (requires model) |
 | `create_context_pack_for_auth_bug` | Context pack for bug-fix task | `fixtures/simple-react-project` | Partial (requires model) |
 | `review_harness_diff_weakened_boundary` | Diff review rejects loosened controls | `fixtures/harness-diff-weakened` | Partial (requires model) |
+| `generate_then_context_pack` | Generate harness, then create a task context pack from it | `fixtures/simple-react-project` | Partial (requires model) |
+| `sync_then_task_on_new_route` | Sync stale harness, then prepare context for a new-route task | `fixtures/project-with-new-route` | Partial (requires model) |
 
 ## Fixture Descriptions
 
@@ -36,10 +37,12 @@ A minimal React + Vite + TypeScript project with:
 - `vite.config.ts`, `tsconfig.json`
 
 **Test scenarios:**
-- Generate: should produce AGENTS.md, CONTEXT-MAP.md, .harness/ files
+- Generate: should build Project Profile before writing harness files
+- Generate: should choose the smallest useful context structure
 - Commands: should extract dev/build/preview/lint from package.json
 - Should NOT invent test commands (no test script exists)
 - Context Pack: should classify bug-fix task correctly
+- Generate → Context Pack: should use generated context routing, not unrelated context
 
 ### fixtures/harness-with-fake-adr
 
@@ -68,6 +71,7 @@ A project with a stale harness that needs syncing:
 - Sync: should detect /reports route is not in CONTEXT-MAP
 - Should propose updating CONTEXT-MAP to include Reports
 - Should NOT invent business meaning for the /reports route
+- Sync → Context Pack: should sync first, evaluate, then produce task context
 
 ### fixtures/harness-diff-weakened
 
@@ -95,7 +99,7 @@ python scripts/scan_project.py evals/fixtures/simple-react-project
 # Test check_commands.py against harness-with-fake-adr
 python scripts/check_commands.py evals/fixtures/harness-with-fake-adr evals/fixtures/simple-react-project
 
-# Test validate_context_map.py (will detect missing files)
+# Test validate_context_map.py
 python scripts/validate_context_map.py evals/fixtures/harness-with-fake-adr evals/fixtures/simple-react-project
 
 # Static fixture integrity check
@@ -110,7 +114,7 @@ python scripts/run_evals.py
 - framework: react
 - package_manager: npm
 - scripts: dev, build, preview, lint
-- Should detect Vite bundler
+- should detect Vite bundler
 
 ### check_commands.py on harness-with-fake-adr
 
@@ -120,21 +124,34 @@ python scripts/run_evals.py
 
 ### validate_context_map.py on project-with-new-route
 
-- CONTEXT-MAP.md references .harness/commands.md which does NOT exist
-- If .harness/commands.md not marked as MISSING_CONTEXT → should flag as missing
+- CONTEXT-MAP.md references missing or stale paths should be flagged unless marked MISSING_CONTEXT
+
+## Behavioral Evaluation Focus
+
+Static scripts only check file integrity and simple validation. Full behavioral evals should check whether the skill changes agent behavior:
+
+- Does Generate build a Project Profile before writing files?
+- Does it avoid template-first harness generation?
+- Does it create only necessary files?
+- Does it use Grill Before Write before domain, ADR, or boundary claims?
+- Does it create Context Packs from generated context routing?
+- Does Project-State Sync update stale context before task execution?
+- Does it mark unsupported meaning as UNKNOWN / NEEDS HUMAN REVIEW?
 
 ## Running Full Behavioral Tests
 
 Full evaluation requires a model-based skill-quality-evaluation run:
 
-```
+```text
 Load skill-quality-evaluation.
 Run Path B behavioral test for harness-context-engine on task: generate harness for evals/fixtures/simple-react-project
+Run Path B behavioral test for harness-context-engine on task: generate_then_context_pack
+Run Path B behavioral test for harness-context-engine on task: sync_then_task_on_new_route
 ```
 
 ## Current Status
 
-- evals.json: defined (5 evals)
+- evals.json: defined (7 evals)
 - fixtures: populated (4 fixture projects)
-- static scripts: runnable (scan_project, check_commands, validate_context_map)
+- static scripts: runnable (scan_project, check_commands, validate_context_map, run_evals)
 - behavioral evals: require model interaction (not automated)
