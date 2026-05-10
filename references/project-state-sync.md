@@ -1,8 +1,24 @@
 # Project-State Sync
 
-Use when project code changed and harness may be stale.
+## When to Use
+
+- After project code changes (new files, routes, APIs, dependencies)
+- After git pull with significant changes
+- Post-task: when Run Report indicates harness may be stale
+- Before a new agent task on a project last synced more than a week ago
+
+**Not a publication step.** Sync updates the local harness context to match the current project state. It does not publish to Git, wiki, or any external destination. See Publication Sync for that.
+
+## Inputs
+
+- Project directory with existing harness
+- Git diff or current project state snapshot
+- Optionally: `scripts/scan_project.py` output
+- Optionally: `scripts/compare_harness_to_project.py` output
 
 ## Workflow
+
+Use when project code changed and harness may be stale.
 
 1. Scan current project state or git diff
 2. Detect change type (structural, behavioral, command, risk, domain, decision, verification)
@@ -119,3 +135,29 @@ After update, run Evaluate. Hard Fail → block Publication Sync.
 - Score: X/10
 - Status: pass / fail
 ```
+
+## Stop Conditions
+
+- **Hard Fail from Evaluate → stop.** Do not proceed to Publication Sync.
+- No detectable change → report no-op, no harness update needed
+- Only cosmetic changes → skip sync, report as no-op
+- Low-confidence changes only → propose updates but do not auto-apply
+
+## Related Scripts
+
+| Script | Role |
+|---|---|
+| `scripts/scan_project.py` | Scans current project state for comparison |
+| `scripts/compare_harness_to_project.py` | Detects stale references and new files |
+| `scripts/validate_context_map.py` | Validates updated CONTEXT-MAP references |
+| `scripts/check_commands.py` | Validates commands in updated harness |
+
+## Common Failures
+
+| Failure | Cause | Prevention |
+|---|---|---|
+| Sync not run before tasks | No workflow enforcement | Always run Sync before new tasks on changed projects |
+| Auto-applying low-confidence changes | Treating inference as observation | Mark NEEDS HUMAN REVIEW for inferred changes |
+| Skipping Evaluate after sync | Assuming sync cannot break harness | Always run Evaluate after sync |
+| Treating Sync as publication | Confusing local sync with remote publish | Sync updates local files; Publication Sync handles remote |
+| Missing new routes/modules | Scan scope too narrow | Check src/, pages/, routes/, API directories systematically

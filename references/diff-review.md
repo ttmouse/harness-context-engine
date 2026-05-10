@@ -1,12 +1,28 @@
 # Diff Review
 
+## When to Use
+
+- Harness files have been modified (manual edit or Optimize)
+- Before approving any harness change PR/merge request
+- When reviewing if an optimization has weakened controls
+- As a gate before Publication Sync
+
+**Key principle:** Diff Review is specifically concerned with whether changes **weaken** control systems. Adding new rules or restrictions is generally acceptable. Moving from "Requires Approval" to "Allowed" is not.
+
+## Inputs
+
+- Git diff of harness files (before/after)
+- Current harness files for context
+- Previous Evaluate report (if available)
+
+## Workflow
+
 Review harness changes for weakening of control systems.
 
-## When to Trigger
-
-- Harness files changed
-- Optimize executed
-- Anyone questions whether control systems were loosened
+1. Get the diff of changed harness files
+2. Check each review rule against the diff
+3. If any rule violated → reject changes
+4. Report specific violations
 
 ## Review Rules
 
@@ -57,3 +73,25 @@ Review harness changes for weakening of control systems.
 ## Rejection Reason (if rejected)
 - [rule violation details]
 ```
+
+## Stop Conditions
+
+- Any single violation → reject immediately. No partial approval.
+- If diff is empty or only cosmetic → no review needed, skip
+- If no harness files were changed → skip
+
+## Related Scripts
+
+| Script | Role |
+|---|---|
+| `scripts/validate_harness_diff.py` | Automated regex-based diff checking (early prototype) |
+| `scripts/check_commands.py` | Validates command status changes |
+
+## Common Failures
+
+| Failure | Cause | Prevention |
+|---|---|---|
+| Missing weakened boundaries | Focusing on additions, not removals | Always check what was removed or relaxed |
+| Approving "Requires Approval" → "Allowed" moves | Not recognizing this as weakening | Flag any approval-level downgrade |
+| Missing command status falsification | Not checking if unverified → verified without execution | Cross-check with check_commands.py output |
+| Reviewing only additions | Only checking what's new, not what changed | Always review full diff, not just added lines

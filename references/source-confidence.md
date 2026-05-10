@@ -1,5 +1,20 @@
 # Source and Confidence
 
+## When to Use
+
+- Every time a non-obvious claim is made in harness files
+- When defining business terms, architecture decisions, or commands
+- When marking inferred information vs observed facts
+- During Evaluate: to verify existing claims have proper attribution
+
+## Inputs
+
+- Content of harness files (AGENTS.md, CONTEXT.md, .harness/*.md, docs/adr/*.md, docs/agents/domain.md)
+- Project source files for verification
+- Command outputs for verification
+
+## Core Rule
+
 Every non-obvious claim must include source, confidence, and type.
 
 ## Fields
@@ -36,3 +51,26 @@ Every non-obvious claim must include source, confidence, and type.
 ## Unknown
 - Billing provider: "UNKNOWN: cannot confirm from codebase"
 ```
+
+## Stop Conditions
+
+- Source unverifiable → mark UNKNOWN, do not assert
+- Multiple conflicting sources → report ambiguity, mark medium/low confidence
+- Only source-code naming available → mark as inferred, never as observed
+- No source at all → flag as NEEDS HUMAN REVIEW
+
+## Related Scripts
+
+| Script | Role |
+|---|---|
+| `scripts/validate_source_confidence.py` | Checks key harness files for source/confidence coverage |
+| `scripts/scan_project.py` | Provides observed project facts for cross-reference |
+
+## Common Failures
+
+| Failure | Cause | Prevention |
+|---|---|---|
+| Presenting inferred as fact | Treating naming conventions as business definitions | Mark as INFERRED, add LOW CONFIDENCE |
+| Omission of source | Assuming obviousness | Every non-obvious claim needs source |
+| Confidence inflation | Rating medium/low claims as high | Be conservative with confidence |
+| Source not specific enough | "from codebase" instead of exact file path | Use specific file paths as source

@@ -57,13 +57,15 @@ Run these for deterministic checks. See scripts/ directory.
 
 | Script | What it checks |
 |---|---|
-| scripts/scan_project.py | Project structure, language, framework, package scripts — **implemented** |
+| scripts/scan_project.py | Project structure, language, framework, package scripts, CI, monorepo clues — **implemented** |
 | scripts/check_commands.py | Commands come from real config files — **implemented** |
-| scripts/validate_context_map.py | CONTEXT-MAP references valid files, no MISSING_CONTEXT — **implemented** |
-| scripts/check_paths.py | Harness-referenced paths exist in project — **stub** |
-| scripts/validate_source_confidence.py | Key conclusions have source/confidence/type — **stub** |
-| scripts/compare_harness_to_project.py | Project changes make harness stale — **stub** |
-| scripts/validate_harness_diff.py | Harness changes do not weaken controls — **stub** |
+| scripts/validate_context_map.py | CONTEXT-MAP references, MISSING_CONTEXT detection — **implemented** |
+| scripts/check_paths.py | Harness-referenced paths exist in project — **partial** |
+| scripts/validate_source_confidence.py | Key conclusions have source/confidence/type — **partial** |
+| scripts/compare_harness_to_project.py | Project changes make harness stale — **partial** |
+| scripts/validate_harness_diff.py | Harness changes do not weaken controls — **partial** |
+| scripts/run_evals.py | Eval fixture integrity checks — **implemented** |
+| scripts/check_skill_repo.py | Self-check: format, compile, fixtures — **implemented** |
 
 ---
 

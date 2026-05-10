@@ -1,6 +1,35 @@
 # Evaluate Harness
 
-Three-layer evaluation. Hard Fail on any critical rule → stop immediately.
+## When to Use
+
+- After Generate completes, to validate generated harness
+- After Project-State Sync, to confirm sync did not break harness
+- Before Publication Sync, as a pre-flight gate
+- After any manual harness edits
+- When suspecting harness drift or stale content
+
+## Inputs
+
+- Project directory with existing harness (AGENTS.md, CONTEXT-MAP.md, .harness/ files)
+- Optionally: `scripts/scan_project.py` output for truth comparison
+- Optionally: `scripts/check_commands.py` output for command validation
+- Optionally: `scripts/validate_context_map.py` output for reference validation
+
+## Workflow
+
+Three-layer evaluation. Hard Fail on any critical rule → stop immediately. Do not compute score.
+
+### Layer 1: Hard Fail
+
+If any Hard Fail rule triggers → stop. Report failure. Do not proceed to scoring.
+
+### Layer 2: Truth Check
+
+Compare harness claims against actual project state. Report mismatches.
+
+### Layer 3: Usability Dry Run
+
+Simulate task types and verify correct context is findable.
 
 ## Step 1: Structure Check
 
@@ -125,3 +154,32 @@ For each: Expected Context → Found / Missing → MISSING_CONTEXT
 ```
 
 See: references/output-schemas.md for full schema.
+
+## Stop Conditions
+
+- **Hard Fail triggers → stop immediately.** Do not compute score. Do not proceed to Truth Check.
+- Invented commands found → Hard Fail, stop
+- Invented paths found → Hard Fail, stop
+- All required files missing → Hard Fail, stop
+- Unsourced ADR found → Hard Fail, stop
+- After Hard Fail, report findings and recommend human review
+
+## Related Scripts
+
+| Script | Role in Evaluate |
+|---|---|
+| `scripts/check_commands.py` | Validates commands against real configs |
+| `scripts/validate_context_map.py` | Validates CONTEXT-MAP references |
+| `scripts/check_paths.py` | Validates all referenced paths exist |
+| `scripts/validate_source_confidence.py` | Checks source/confidence coverage |
+| `scripts/compare_harness_to_project.py` | Detects stale harness references |
+
+## Common Failures
+
+| Failure | Cause | Prevention |
+|---|---|---|
+| Hard Fail bypassed | Softening rules to avoid failures | Hard Fails must be non-negotiable |
+| Unexecuted commands marked verified | Assuming commands work without running | Mark as unverified unless executed |
+| MISSING_CONTEXT not flagged | Not checking if references actually exist | Run validate_context_map.py |
+| Invented ADR counted as valid | Not checking ADR source field | Enforce Source field requirement |
+| Stale harness passed evaluation | Not re-running after project changes | Always run Evaluate after any change
