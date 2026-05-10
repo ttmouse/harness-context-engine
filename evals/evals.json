@@ -1,0 +1,71 @@
+[
+  {
+    "name": "generate_simple_project_harness",
+    "description": "Generate harness for a simple project",
+    "skills": ["harness-context-engine"],
+    "query": "generate harness for ~/Projects/components-demo",
+    "expected_behavior": [
+      "Generates AGENTS.md and CONTEXT-MAP.md",
+      "Extracts commands only from package.json",
+      "Does not create formal ADR without evidence",
+      "Marks uncertain business terms as UNKNOWN or low confidence",
+      "Runs Evaluate after Generate"
+    ],
+    "fixtures_needed": ["simple-react-project"],
+    "status": "ready"
+  },
+  {
+    "name": "evaluate_fake_adr",
+    "description": "Evaluate harness with invented ADR",
+    "skills": ["harness-context-engine"],
+    "query": "evaluate harness for ~/Projects/independent-WEB-share",
+    "expected_behavior": [
+      "Hard-fails formal ADR without evidence",
+      "Reports missing source/confidence",
+      "Does not treat the harness as valid"
+    ],
+    "fixtures_needed": ["harness-with-fake-adr"],
+    "status": "ready"
+  },
+  {
+    "name": "sync_new_route",
+    "description": "Sync harness after new route added",
+    "skills": ["harness-context-engine"],
+    "query": "sync harness from diff for ~/Projects/components-demo",
+    "expected_behavior": [
+      "Detects new route or module change",
+      "Updates or proposes update to CONTEXT-MAP.md",
+      "Does not invent business meaning for the route",
+      "Runs Evaluate after sync"
+    ],
+    "fixtures_needed": ["project-with-new-route"],
+    "status": "ready"
+  },
+  {
+    "name": "create_context_pack_for_auth_bug",
+    "description": "Create minimal context pack for bug fix",
+    "skills": ["harness-context-engine"],
+    "query": "create context pack for fixing login redirect bug on mobile",
+    "expected_behavior": [
+      "Classifies task as bug-fix and auth/frontend affected area",
+      "Includes required context files from CONTEXT-MAP",
+      "Lists stop conditions for auth contract changes",
+      "Does not include unrelated context"
+    ],
+    "fixtures_needed": [],
+    "status": "ready"
+  },
+  {
+    "name": "review_harness_diff_weakened_boundary",
+    "description": "Reject harness diff that loosens control systems",
+    "skills": ["harness-context-engine"],
+    "query": "review harness diff where dependency changes moved from Requires Approval to Allowed",
+    "expected_behavior": [
+      "Hard-fails weakening of working boundaries",
+      "Explains why dependency changes require approval",
+      "Suggests restoring stricter rule"
+    ],
+    "fixtures_needed": ["harness-diff-weakened"],
+    "status": "ready"
+  }
+]
