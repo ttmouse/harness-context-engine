@@ -1,11 +1,11 @@
 ---
 name: harness-context-engine
-description: Generate, check, sync, and optimize AI agent harness context for any project. Use when bootstrapping a new project, checking harness quality, syncing wiki, or fixing incomplete context.
+description: Generates, evaluates, syncs, and optimizes AI-agent harness context for software projects. Use when creating AGENTS.md, CONTEXT-MAP.md, .harness files, evaluating existing harness quality, syncing harness after project changes, creating task context packs, or reviewing harness diffs.
 ---
 
 # Harness Context Engine
 
-**Core principle: harness context must be traceable, verifiable, and correctable — not just complete.**
+**Core principle:** harness context must be traceable, verifiable, and correctable — not just complete.
 
 ---
 
@@ -57,13 +57,13 @@ Run these for deterministic checks. See scripts/ directory.
 
 | Script | What it checks |
 |---|---|
-| scripts/scan_project.py | Project structure, language, framework, package scripts — **status: implemented** |
-| scripts/check_paths.py | Harness-referenced paths exist in project — **status: stub** |
-| scripts/check_commands.py | Commands come from real config files — **status: stub** |
-| scripts/validate_source_confidence.py | Key conclusions have source/confidence/type — **status: stub** |
-| scripts/compare_harness_to_project.py | Project changes make harness stale — **status: stub** |
-| scripts/validate_context_map.py | CONTEXT-MAP references valid files, no MISSING_CONTEXT — **status: stub** |
-| scripts/validate_harness_diff.py | Harness changes do not weaken controls — **status: stub** |
+| scripts/scan_project.py | Project structure, language, framework, package scripts — **implemented** |
+| scripts/check_commands.py | Commands come from real config files — **implemented** |
+| scripts/validate_context_map.py | CONTEXT-MAP references valid files, no MISSING_CONTEXT — **implemented** |
+| scripts/check_paths.py | Harness-referenced paths exist in project — **stub** |
+| scripts/validate_source_confidence.py | Key conclusions have source/confidence/type — **stub** |
+| scripts/compare_harness_to_project.py | Project changes make harness stale — **stub** |
+| scripts/validate_harness_diff.py | Harness changes do not weaken controls — **stub** |
 
 ---
 
@@ -86,7 +86,7 @@ Run these for deterministic checks. See scripts/ directory.
 
 ## Evals
 
-Add or update evals before expanding this skill. See evals/evals.json.
+Run with `skill-quality-evaluation`. See evals/evals.json and evals/fixtures/.
 
 ---
 

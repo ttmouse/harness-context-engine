@@ -1,0 +1,5 @@
+{
+  "problem": "Fake ADR without evidence — these decisions have no source",
+  "reason": "Repository pattern and Zustand adoption are invented claims with no project evidence",
+  "should_fail": true
+}
