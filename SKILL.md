@@ -7,6 +7,8 @@ description: Generates, evaluates, syncs, and optimizes AI-agent harness context
 
 **Core principle:** harness context must be traceable, verifiable, and correctable — not just complete.
 
+Harness context is for agent operation, not human documentation. Generate the smallest context-control system that helps an AI coding agent read the right context, respect project boundaries, verify work, and improve after failures.
+
 ---
 
 ## Capability Router
@@ -14,6 +16,7 @@ description: Generates, evaluates, syncs, and optimizes AI-agent harness context
 | User says | Capability | Read |
 |---|---|---|
 | generate harness / bootstrap | Generate | references/generate.md |
+| build project profile / classify project | Project Profile | references/project-profile.md |
 | check harness / evaluate harness | Evaluate | references/evaluate.md |
 | sync harness with project / sync from diff | Project-State Sync | references/project-state-sync.md |
 | publish harness / sync wiki | Publication Sync | references/publication-sync.md |
@@ -21,6 +24,7 @@ description: Generates, evaluates, syncs, and optimizes AI-agent harness context
 | run report / after task | Run Report | references/run-report.md |
 | optimize harness | Optimize | references/optimize.md |
 | review harness diff | Diff Review | references/diff-review.md |
+| unclear domain / ADR / boundary claim | Grill Before Write | references/grill-before-write.md |
 
 ---
 
@@ -44,10 +48,48 @@ Every non-obvious claim must include:
 
 1. Do not invent project facts, commands, paths, business rules, or architecture decisions
 2. Every non-obvious claim requires source + confidence + type
-3. Keep AGENTS.md and generated context files short and task-useful
-4. Prefer scripts for deterministic checks
-5. Run Evaluate after Generate or Project-State Sync
-6. Publication Sync is blocked if Evaluate has hard failures
+3. Generate must produce a Project Profile before writing harness files
+4. Create context files lazily; do not create files only for structural completeness
+5. Grill before write: unclear business/domain/architecture claims must be verified, questioned, or marked UNKNOWN
+6. Keep AGENTS.md and generated context files short and task-useful
+7. Prefer scripts for deterministic checks
+8. Run Evaluate after Generate or Project-State Sync
+9. Publication Sync is blocked if Evaluate has hard failures
+
+---
+
+## Required Generate Flow
+
+```
+Project Scan
+  ↓
+Project Profile
+  ↓
+Context Structure Choice
+  ↓
+Minimal Harness Generation
+  ↓
+Evaluate
+```
+
+Never jump directly from project scan to file generation. The Project Profile is the decision layer that prevents template-first harness generation.
+
+---
+
+## Lazy Creation Rule
+
+Only create files that have a real job and evidence-backed content.
+
+Do not create:
+
+- formal ADRs without decision evidence
+- domain.md without source-backed domain terms
+- multi-context structures for simple projects
+- local AGENTS.md without real independent subprojects
+- known-risks.md without observed or explicitly provided risks
+- empty TODO files merely to satisfy structure
+
+Use UNKNOWN / NEEDS HUMAN REVIEW instead of filling blank sections with guesses.
 
 ---
 
