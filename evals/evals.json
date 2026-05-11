@@ -5,7 +5,9 @@
     "skills": ["harness-context-engine"],
     "query": "generate harness for ~/.hermes/skills/harness-context-engine/evals/fixtures/simple-react-project",
     "expected_behavior": [
-      "Generates AGENTS.md and CONTEXT-MAP.md",
+      "Builds a Project Profile before writing harness files",
+      "Chooses the smallest useful context structure",
+      "Generates AGENTS.md and minimal context routing",
       "Extracts commands only from package.json",
       "Does not create formal ADR without evidence",
       "Marks uncertain business terms as UNKNOWN or low confidence",
@@ -71,6 +73,39 @@
     ],
     "fixtures_needed": [],
     "fixture_path": "fixtures/harness-diff-weakened",
+    "status": "ready"
+  },
+  {
+    "name": "generate_then_context_pack",
+    "description": "Generate harness, then create a task-specific context pack from it",
+    "skills": ["harness-context-engine"],
+    "query": "generate harness for ~/.hermes/skills/harness-context-engine/evals/fixtures/simple-react-project, then create a context pack for fixing a mobile login redirect bug",
+    "expected_behavior": [
+      "Builds a Project Profile before generating harness files",
+      "Creates only necessary harness/context files for the simple fixture",
+      "Uses generated context routing when creating the Context Pack",
+      "Includes only task-relevant context for the login redirect bug",
+      "Does not invent a missing test command",
+      "Marks any unsupported auth or routing meaning as UNKNOWN or NEEDS HUMAN REVIEW"
+    ],
+    "fixtures_needed": [],
+    "fixture_path": "fixtures/simple-react-project",
+    "status": "ready"
+  },
+  {
+    "name": "sync_then_task_on_new_route",
+    "description": "Sync stale harness, then prepare context for a task touching a new route",
+    "skills": ["harness-context-engine"],
+    "query": "sync harness with ~/.hermes/skills/harness-context-engine/evals/fixtures/project-with-new-route, then create a context pack for fixing a bug on the Reports route",
+    "expected_behavior": [
+      "Detects that Reports route exists in code but is missing from CONTEXT-MAP.md",
+      "Proposes or applies a CONTEXT-MAP update with source and confidence",
+      "Does not invent business meaning for Reports",
+      "Marks Reports domain meaning as UNKNOWN or NEEDS HUMAN REVIEW if unsupported",
+      "Runs Evaluate after sync before producing the task Context Pack"
+    ],
+    "fixtures_needed": [],
+    "fixture_path": "fixtures/project-with-new-route",
     "status": "ready"
   }
 ]
