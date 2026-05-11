@@ -5,8 +5,10 @@
     "skills": ["harness-context-engine"],
     "query": "generate harness for ~/.hermes/skills/harness-context-engine/evals/fixtures/simple-react-project",
     "expected_behavior": [
+      "Builds a Project Profile before generating harness files",
       "Generates AGENTS.md and CONTEXT-MAP.md",
       "Extracts commands only from package.json",
+      "Does not create files for structural completeness (no empty ADR, no empty known-risks)",
       "Does not create formal ADR without evidence",
       "Marks uncertain business terms as UNKNOWN or low confidence",
       "Runs Evaluate after Generate"
@@ -71,6 +73,41 @@
     ],
     "fixtures_needed": [],
     "fixture_path": "fixtures/harness-diff-weakened",
+    "status": "ready"
+  },
+  {
+    "name": "generate_then_context_pack",
+    "description": "Generate harness then create context pack for a bug-fix task",
+    "skills": ["harness-context-engine"],
+    "query": "first generate harness for ~/.hermes/skills/harness-context-engine/evals/fixtures/project-with-new-route, then create context pack for fixing a login redirect bug on mobile",
+    "expected_behavior": [
+      "Builds a Project Profile before generating harness",
+      "Uses generated CONTEXT-MAP for context pack",
+      "Does not invent missing test command",
+      "Includes only relevant context for the bug-fix task",
+      "Flags auth or routing risk if applicable",
+      "Does not create empty ADR or known-risks.md",
+      "Follows Lazy Creation rules"
+    ],
+    "fixtures_needed": [],
+    "fixture_path": "fixtures/project-with-new-route",
+    "status": "ready"
+  },
+  {
+    "name": "sync_then_task",
+    "description": "Sync harness then handle a task for the Reports route",
+    "skills": ["harness-context-engine"],
+    "query": "first sync harness from diff for ~/.hermes/skills/harness-context-engine/evals/fixtures/project-with-new-route, then fix the Reports route to show user-specific data",
+    "expected_behavior": [
+      "Detects route missing from context map",
+      "Proposes context-map update",
+      "Does not invent business meaning for Reports",
+      "Marks domain meaning as UNKNOWN or NEEDS HUMAN REVIEW",
+      "Handles Reports data purpose with low-confidence inference",
+      "Does not write inferred business terms as confirmed facts"
+    ],
+    "fixtures_needed": [],
+    "fixture_path": "fixtures/project-with-new-route",
     "status": "ready"
   }
 ]

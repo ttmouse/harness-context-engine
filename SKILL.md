@@ -13,8 +13,9 @@ description: Generates, evaluates, syncs, and optimizes AI-agent harness context
 
 | User says | Capability | Read |
 |---|---|---|
-| generate harness / bootstrap | Generate | references/generate.md |
+| generate harness / bootstrap | Generate | references/generate.md, references/project-profile.md, references/grill-before-write.md |
 | check harness / evaluate harness | Evaluate | references/evaluate.md |
+| rewrite task / task from issue | Task Rewrite | references/task-rewrite.md |
 | sync harness with project / sync from diff | Project-State Sync | references/project-state-sync.md |
 | publish harness / sync wiki | Publication Sync | references/publication-sync.md |
 | create context pack | Context Pack | references/context-pack.md |
@@ -48,6 +49,10 @@ Every non-obvious claim must include:
 4. Prefer scripts for deterministic checks
 5. Run Evaluate after Generate or Project-State Sync
 6. Publication Sync is blocked if Evaluate has hard failures
+7. **Generate must produce a Project Profile before writing harness files.** See `references/project-profile.md`.
+8. **Create context files lazily.** Do not create files only for structural completeness. See `references/generate.md` Lazy Creation Rule.
+9. **Grill before write.** Unclear business, domain, or architecture claims must be verified, questioned, or marked UNKNOWN. See `references/grill-before-write.md`.
+10. **Harness context is for agent operation, not human documentation.** Keep files focused on what agents need to work safely and accurately.
 
 ---
 
@@ -72,6 +77,10 @@ Run these for deterministic checks. See scripts/ directory.
 ## Context Layers
 
 ```
+生成决策（per generate）:
+  references/project-profile.md    # scan→profile→generate judgment
+  references/grill-before-write.md  # business term verification
+
 热（every task）:
   AGENTS.md, CONTEXT-MAP.md
 
