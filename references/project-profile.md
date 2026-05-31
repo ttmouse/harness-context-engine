@@ -11,6 +11,7 @@ The Project Profile answers:
 - What kind of project is this?
 - What stack and structure were observed?
 - What commands are source-backed?
+- What relationship evidence exists between files, routes, APIs, services, models, tests, and docs?
 - What risk areas exist?
 - What context structure should be generated?
 - What is still unknown or needs human review?
@@ -23,6 +24,7 @@ Use it before:
 
 - generating a new harness;
 - deciding single-context vs multi-context;
+- deciding whether a Code Graph is useful;
 - updating CONTEXT-MAP.md after project changes;
 - creating a task-specific Context Pack for a project with unclear structure;
 - deciding whether a claim is observed, inferred, or unknown.
@@ -31,6 +33,7 @@ Use it before:
 
 - Project root path
 - `scripts/scan_project.py` output, if available
+- `scripts/generate_code_graph.py` output, if available and useful
 - Existing README or docs, if available
 - package manager files such as package.json, pnpm-workspace.yaml, Makefile, pyproject.toml, go.mod, Cargo.toml
 - CI workflow files, if available
@@ -40,11 +43,12 @@ Use it before:
 ## Workflow
 
 1. Run or perform project scan.
-2. Record observed facts with source paths.
-3. Separate observed facts from inferred meaning.
-4. Identify unknowns and human-review items.
-5. Choose a context structure recommendation.
-6. Use the profile to decide which harness files to create.
+2. Optionally run Code Relationship Scan when relationship evidence would improve routing or impact analysis.
+3. Record observed facts with source paths.
+4. Separate observed facts from inferred meaning.
+5. Identify unknowns and human-review items.
+6. Choose a context structure recommendation.
+7. Use the profile to decide which harness files to create.
 
 ## Project Type
 
@@ -95,6 +99,32 @@ Capture observed project structure:
 
 Every structural claim must cite a path.
 
+## Relationship Evidence
+
+Use Code Graph output only when it helps explain how the project is connected.
+
+Capture relationship evidence such as:
+
+- file import relationships;
+- page-to-route relationships;
+- page/API-client-to-API path references;
+- controller-to-service clues;
+- service/model/data clues;
+- test-to-source clues;
+- doc-to-feature or doc-to-module clues;
+- high-risk cross-module edges.
+
+Relationship evidence must include:
+
+| Claim | Source | Type | Confidence |
+|---|---|---|---|
+| `src/pages/orders.tsx` references `/api/orders` | `src/pages/orders.tsx` string literal | observed | medium |
+| `order.test.ts` appears to test `order.ts` | filename match | inferred | low |
+
+Do not treat Code Graph inferred edges as confirmed project truth.
+
+If Code Graph is unavailable, stale, or too weak, state that the profile is based on project scan and direct inspection only.
+
 ## Commands
 
 Classify commands as:
@@ -123,7 +153,8 @@ Common risk areas:
 - environment config;
 - generated files;
 - public API contracts;
-- dependency/config changes.
+- dependency/config changes;
+- cross-module relationship edges that affect multiple project areas.
 
 If risk is inferred from naming only, mark as INFERRED and LOW CONFIDENCE.
 
@@ -140,6 +171,8 @@ Choose one:
 
 Do not generate multi-context just because the template supports it.
 
+Relationship evidence may increase confidence in sectioned-context, multi-context, or monorepo-context only when it shows real independent areas or high-impact cross-area dependencies.
+
 ## Output Format
 
 ```md
@@ -153,6 +186,10 @@ Do not generate multi-context just because the template supports it.
 
 ## Structure
 
+## Relationship Evidence
+| Claim | Source | Type | Confidence |
+|---|---|---|---|
+
 ## Commands
 
 ## Risk Areas
@@ -160,7 +197,6 @@ Do not generate multi-context just because the template supports it.
 ## Context Structure Recommendation
 
 ## Evidence Table
-
 | Claim | Source | Type | Confidence |
 |---|---|---|---|
 
@@ -186,6 +222,8 @@ If the project can still be handled safely, continue with UNKNOWN markers instea
 | Script | Role |
 |---|---|
 | `scripts/scan_project.py` | Collects project facts for profile generation |
+| `scripts/generate_code_graph.py` | Collects optional relationship evidence |
+| `scripts/validate_code_graph.py` | Checks relationship evidence quality when a graph exists |
 | `scripts/check_commands.py` | Confirms command source backing |
 | `scripts/validate_context_map.py` | Validates generated context references |
 
@@ -196,5 +234,6 @@ If the project can still be handled safely, continue with UNKNOWN markers instea
 | Template-first harness | Generating files before understanding project state | Build Project Profile first |
 | Invented project purpose | Deriving purpose from repo name or folder names | Mark UNKNOWN unless source-backed |
 | Over-splitting context | Creating multi-context for a simple project | Use complexity evidence |
-| Missing risk boundaries | Failing to detect auth/data/deploy areas | Review Project Profile risk areas |
+| Graph-first overreach | Generating code graph for tiny projects or with weak evidence | Apply Lazy Creation Rule |
+| Missing risk boundaries | Failing to detect auth/data/deploy areas | Review Project Profile risk areas and relationship evidence |
 | False certainty | Presenting inferred claims as facts | Use source/confidence/type |
