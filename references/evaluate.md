@@ -7,6 +7,7 @@
 - Before Publication Sync, as a pre-flight gate
 - After any manual harness edits
 - When suspecting harness drift or stale content
+- After generating or syncing a code graph
 
 ## Inputs
 
@@ -14,6 +15,7 @@
 - Optionally: `scripts/scan_project.py` output for truth comparison
 - Optionally: `scripts/check_commands.py` output for command validation
 - Optionally: `scripts/validate_context_map.py` output for reference validation
+- Optionally: `.harness/code-graph/code_graph.json` and `scripts/validate_code_graph.py` output
 
 ## Workflow
 
@@ -44,6 +46,8 @@ CONTEXT.md or docs/contexts/*/CONTEXT.md
 .harness/working-boundaries.md
 .harness/testing-and-verification.md
 ```
+
+If `.harness/code-graph/code_graph.json` exists, validate it. Code Graph is optional, but an existing graph must be structurally valid.
 
 ## Step 2: Hard Fail Rules
 
@@ -83,6 +87,20 @@ CONTEXT.md or docs/contexts/*/CONTEXT.md
 
 Run: `scripts/validate_context_map.py /path/to/project` to check.
 
+### Code Graph
+
+Only apply these rules if `.harness/code-graph/code_graph.json` or another declared `code_graph.json` exists.
+
+| Rule | Check |
+|---|---|
+| invalid-code-graph-json | code_graph.json must parse as JSON. |
+| graph-edge-missing-node | Every edge source/target must reference an existing node. |
+| graph-high-confidence-no-evidence | Any high-confidence edge must include evidence. |
+| graph-path-node-missing | Path nodes must reference existing project files when a project path is available. |
+| graph-risk-edge-no-approval | High-risk relation must be covered by `.harness/working-boundaries.md` approval rules. |
+
+Run: `scripts/validate_code_graph.py /path/to/code_graph.json /path/to/project` to check.
+
 ## Step 3: Truth Check
 
 Rescan project. Verify harness content against reality.
@@ -117,7 +135,34 @@ npm run test 2>&1; echo "EXIT:$?"
 
 **Do NOT mark unexecuted commands as verified.**
 
-## Step 5: Usability Dry Run
+## Step 5: Code Graph Check
+
+If a code graph exists:
+
+```bash
+python scripts/validate_code_graph.py /path/to/project/.harness/code-graph/code_graph.json /path/to/project
+```
+
+Record:
+
+| Check | Status | Notes |
+|---|---|---|
+| JSON parse | pass / fail | |
+| node references | pass / fail | |
+| edge evidence | pass / fail | |
+| path existence | pass / fail | |
+| inferred-edge ratio | pass / warning | |
+| graph usefulness | pass / warning | |
+
+Warnings:
+
+- graph has nodes but no edges;
+- graph has mostly inferred edges;
+- graph unknowns are empty for a complex project;
+- graph appears stale after project changes;
+- Context Pack ignores available relevant graph information.
+
+## Step 6: Usability Dry Run
 
 Simulate 3 task types. Verify correct context is findable.
 
@@ -126,6 +171,12 @@ Simulate 3 task types. Verify correct context is findable.
 - Task C: refactor/testing
 
 For each: Expected Context → Found / Missing → MISSING_CONTEXT
+
+If Code Graph exists, also verify:
+
+- likely files can be identified from graph evidence;
+- high-risk edges appear in stop conditions or approval requirements;
+- inferred edges are not treated as confirmed facts.
 
 ## Output Format
 
@@ -146,6 +197,9 @@ For each: Expected Context → Found / Missing → MISSING_CONTEXT
 ## Command Check
 [table]
 
+## Code Graph Check
+[table or "not present / not required"]
+
 ## Optimization Suggestions
 1. [suggestion]
 
@@ -162,6 +216,7 @@ See: references/output-schemas.md for full schema.
 - Invented paths found → Hard Fail, stop
 - All required files missing → Hard Fail, stop
 - Unsourced ADR found → Hard Fail, stop
+- Invalid code graph found when graph is declared or used → Hard Fail, stop
 - After Hard Fail, report findings and recommend human review
 
 ## Related Scripts
@@ -170,6 +225,7 @@ See: references/output-schemas.md for full schema.
 |---|---|
 | `scripts/check_commands.py` | Validates commands against real configs |
 | `scripts/validate_context_map.py` | Validates CONTEXT-MAP references |
+| `scripts/validate_code_graph.py` | Validates code graph JSON and relationship evidence |
 | `scripts/check_paths.py` | Validates all referenced paths exist |
 | `scripts/validate_source_confidence.py` | Checks source/confidence coverage |
 | `scripts/compare_harness_to_project.py` | Detects stale harness references |
@@ -182,4 +238,6 @@ See: references/output-schemas.md for full schema.
 | Unexecuted commands marked verified | Assuming commands work without running | Mark as unverified unless executed |
 | MISSING_CONTEXT not flagged | Not checking if references actually exist | Run validate_context_map.py |
 | Invented ADR counted as valid | Not checking ADR source field | Enforce Source field requirement |
-| Stale harness passed evaluation | Not re-running after project changes | Always run Evaluate after any change
+| Stale harness passed evaluation | Not re-running after project changes | Always run Evaluate after any change |
+| Invalid graph trusted | Skipping graph validation | Run validate_code_graph.py before graph-aware Context Pack |
+| Pretty graph accepted | Graph has nodes but no useful relationship edges | Treat as warning and avoid using it for impact analysis |
