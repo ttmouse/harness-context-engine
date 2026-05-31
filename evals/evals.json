@@ -2,7 +2,9 @@
   {
     "name": "generate_simple_project_harness",
     "description": "Generate harness for a simple project",
-    "skills": ["harness-context-engine"],
+    "skills": [
+      "harness-context-engine"
+    ],
     "query": "generate harness for ~/.hermes/skills/harness-context-engine/evals/fixtures/simple-react-project",
     "expected_behavior": [
       "Builds a Project Profile before writing harness files",
@@ -20,7 +22,9 @@
   {
     "name": "evaluate_fake_adr",
     "description": "Evaluate harness with invented ADR",
-    "skills": ["harness-context-engine"],
+    "skills": [
+      "harness-context-engine"
+    ],
     "query": "evaluate harness for ~/.hermes/skills/harness-context-engine/evals/fixtures/harness-with-fake-adr",
     "expected_behavior": [
       "Hard-fails formal ADR without evidence",
@@ -34,7 +38,9 @@
   {
     "name": "sync_new_route",
     "description": "Sync harness after new route added",
-    "skills": ["harness-context-engine"],
+    "skills": [
+      "harness-context-engine"
+    ],
     "query": "sync harness from diff for ~/.hermes/skills/harness-context-engine/evals/fixtures/project-with-new-route",
     "expected_behavior": [
       "Detects new route or module change",
@@ -49,7 +55,9 @@
   {
     "name": "create_context_pack_for_auth_bug",
     "description": "Create minimal context pack for bug fix",
-    "skills": ["harness-context-engine"],
+    "skills": [
+      "harness-context-engine"
+    ],
     "query": "create context pack for fixing login redirect bug on mobile",
     "expected_behavior": [
       "Classifies task as bug-fix and auth/frontend affected area",
@@ -64,7 +72,9 @@
   {
     "name": "review_harness_diff_weakened_boundary",
     "description": "Reject harness diff that loosens control systems",
-    "skills": ["harness-context-engine"],
+    "skills": [
+      "harness-context-engine"
+    ],
     "query": "review harness diff for ~/.hermes/skills/harness-context-engine/evals/fixtures/harness-diff-weakened",
     "expected_behavior": [
       "Hard-fails weakening of working boundaries",
@@ -78,7 +88,9 @@
   {
     "name": "generate_then_context_pack",
     "description": "Generate harness, then create a task-specific context pack from it",
-    "skills": ["harness-context-engine"],
+    "skills": [
+      "harness-context-engine"
+    ],
     "query": "generate harness for ~/.hermes/skills/harness-context-engine/evals/fixtures/simple-react-project, then create a context pack for fixing a mobile login redirect bug",
     "expected_behavior": [
       "Builds a Project Profile before generating harness files",
@@ -95,7 +107,9 @@
   {
     "name": "sync_then_task_on_new_route",
     "description": "Sync stale harness, then prepare context for a task touching a new route",
-    "skills": ["harness-context-engine"],
+    "skills": [
+      "harness-context-engine"
+    ],
     "query": "sync harness with ~/.hermes/skills/harness-context-engine/evals/fixtures/project-with-new-route, then create a context pack for fixing a bug on the Reports route",
     "expected_behavior": [
       "Detects that Reports route exists in code but is missing from CONTEXT-MAP.md",
@@ -103,6 +117,74 @@
       "Does not invent business meaning for Reports",
       "Marks Reports domain meaning as UNKNOWN or NEEDS HUMAN REVIEW if unsupported",
       "Runs Evaluate after sync before producing the task Context Pack"
+    ],
+    "fixtures_needed": [],
+    "fixture_path": "fixtures/project-with-new-route",
+    "status": "ready"
+  },
+  {
+    "name": "generate_code_graph_simple_project",
+    "description": "Generate a lightweight code graph for a simple fixture without over-claiming business meaning",
+    "skills": [
+      "harness-context-engine"
+    ],
+    "query": "build code graph for ~/.hermes/skills/harness-context-engine/evals/fixtures/simple-react-project",
+    "expected_behavior": [
+      "Runs or simulates Code Relationship Scan only when useful",
+      "Creates observable file/import/API/route/test relationships where evidence exists",
+      "Does not create business_feature nodes from filenames alone",
+      "Marks unresolved or heuristic relationships as inferred or low confidence",
+      "Does not generate large human-facing documentation"
+    ],
+    "fixtures_needed": [],
+    "fixture_path": "fixtures/simple-react-project",
+    "status": "ready"
+  },
+  {
+    "name": "validate_code_graph_missing_node",
+    "description": "Validate should fail when graph edges reference missing nodes",
+    "skills": [
+      "harness-context-engine"
+    ],
+    "query": "validate a code graph where an edge source or target does not exist",
+    "expected_behavior": [
+      "Hard-fails or reports validation failure for missing edge source/target nodes",
+      "Does not accept dangling graph edges",
+      "Reports the failing edge with evidence"
+    ],
+    "fixtures_needed": [],
+    "fixture_path": "fixtures/simple-react-project",
+    "status": "ready"
+  },
+  {
+    "name": "validate_code_graph_high_confidence_without_evidence",
+    "description": "Validate should fail high-confidence edges that lack evidence",
+    "skills": [
+      "harness-context-engine"
+    ],
+    "query": "validate a code graph with a high confidence edge that has no evidence",
+    "expected_behavior": [
+      "Fails the graph or marks it invalid",
+      "Explains that high-confidence relationship edges require evidence",
+      "Does not silently downgrade the missing evidence"
+    ],
+    "fixtures_needed": [],
+    "fixture_path": "fixtures/simple-react-project",
+    "status": "ready"
+  },
+  {
+    "name": "graph_aware_context_pack",
+    "description": "Context Pack can use graph evidence to select likely files without loading unrelated context",
+    "skills": [
+      "harness-context-engine"
+    ],
+    "query": "create a graph-aware context pack for a task touching a route or API in ~/.hermes/skills/harness-context-engine/evals/fixtures/project-with-new-route",
+    "expected_behavior": [
+      "Consults CONTEXT-MAP first",
+      "Uses code_graph.json only if it exists and validates",
+      "Selects likely files from relevant graph nodes and edges",
+      "Includes affected relationships with evidence and confidence",
+      "Falls back to CONTEXT-MAP routing if graph is stale or missing"
     ],
     "fixtures_needed": [],
     "fixture_path": "fixtures/project-with-new-route",
