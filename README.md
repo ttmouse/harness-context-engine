@@ -12,11 +12,14 @@ When an AI coding agent starts working on a project without harness context, it 
 - miss files that are generated, sensitive, or off-limits;
 - change high-impact project areas without approval;
 - hallucinate business rules or architecture decisions from source-code naming alone;
-- fail to verify work because it does not know the correct commands or acceptance path.
+- fail to verify work because it does not know the correct commands or acceptance path;
+- miss real implementation relationships across pages, routes, APIs, services, data models, and tests.
 
 This skill generates and maintains **harness context** — a thin, verifiable layer of project truth — so agents know what to read, what they can change, what they must not touch, how to verify their work, and how to capture lessons from failures.
 
 **Key distinction:** this is not a project documentation generator. It produces minimal, task-oriented context files that help an agent operate safely inside a project.
+
+Code Graph support adds a lightweight **relationship evidence layer**. It helps agents trace observable code relationships for context routing and impact analysis, without turning the project into a graph database or generic knowledge base.
 
 ---
 
@@ -24,6 +27,8 @@ This skill generates and maintains **harness context** — a thin, verifiable la
 
 ```text
 Project Scan
+  ↓
+Optional Code Relationship Scan
   ↓
 Project Profile
   ↓
@@ -38,6 +43,8 @@ Context Pack / Project-State Sync / Run Report
 
 The Project Profile is the decision layer between scan and generation. It prevents template-first harness generation by forcing the agent to record observed project facts, unknowns, confidence, and the reason for choosing single-context, sectioned-context, multi-context, or monorepo-context.
 
+Code Relationship Scan is optional. Use it when observable relationships improve impact analysis or task-specific context selection. Do not generate code graph files for small projects where they only restate the directory tree.
+
 ---
 
 ## What This Is Not
@@ -47,6 +54,7 @@ The Project Profile is the decision layer between scan and generation. It preven
 - **Not an ADR generator** — architecture decisions must have evidence; this skill does not invent ADRs to satisfy completeness.
 - **Not a business rule extractor** — it does not auto-define business terms from source-code naming alone.
 - **Not a knowledge base** — no generic patterns, no invented facts, no unverified claims.
+- **Not a graph database** — Code Graph is a lightweight relationship evidence file, not Neo4j or a full code intelligence platform.
 - **Not a fact-fabricator** — unverified inferences are marked UNKNOWN, not presented as truth.
 
 ---
@@ -57,11 +65,12 @@ The Project Profile is the decision layer between scan and generation. It preven
 |---|---|---|
 | **Generate** | partial | Workflow exists in `references/generate.md`; now requires Project Profile before writing files. |
 | **Project Profile** | reference workflow | Defines the scan-to-generation decision artifact in `references/project-profile.md`. |
+| **Code Graph** | partial | Reference workflow and lightweight scripts added; first version extracts observable relationships only. |
 | **Grill Before Write** | reference workflow | Prevents weak inferences from becoming harness facts. See `references/grill-before-write.md`. |
 | **Evaluate** | partial | Hard-fail rules defined in `references/evaluate.md`; core validation scripts exist but are incomplete. |
 | **Project-State Sync** | partial | Workflow defined; stale detection and diff-based sync are not fully automated. |
 | **Publication Sync** | planned / partial | Workflow defined in `references/publication-sync.md`; blocked by Evaluate completeness. |
-| **Context Pack** | markdown workflow | Manual workflow only. Structure defined in `references/context-pack.md`. |
+| **Context Pack** | markdown workflow | Manual workflow only. Structure defined in `references/context-pack.md`; can use Code Graph when available. |
 | **Run Report** | markdown workflow | Manual workflow only. Template defined in `references/run-report.md`. |
 | **Optimize** | planned | Depends on collected failure records. |
 | **Diff Review** | early prototype | `scripts/validate_harness_diff.py` exists but is regex-based and rough. |
@@ -78,6 +87,12 @@ hermes chat "generate harness for /path/to/project"
 
 # Build only the Project Profile first
 hermes chat "build project profile for /path/to/project"
+
+# Build a lightweight code relationship graph
+python scripts/generate_code_graph.py /path/to/project --output /path/to/project/.harness/code-graph/code_graph.json
+
+# Validate an existing code relationship graph
+python scripts/validate_code_graph.py /path/to/project/.harness/code-graph/code_graph.json /path/to/project
 
 # Evaluate existing harness quality
 hermes chat "check harness for /path/to/project"
@@ -99,6 +114,7 @@ harness-context-engine/
   README.md
   references/
     project-profile.md
+    code-graph.md
     grill-before-write.md
     generate.md
     evaluate.md
@@ -113,6 +129,8 @@ harness-context-engine/
     templates.md
   scripts/
     scan_project.py
+    generate_code_graph.py
+    validate_code_graph.py
     check_paths.py
     check_commands.py
     validate_source_confidence.py
@@ -146,6 +164,8 @@ All scripts are in `scripts/`. Scripts output structured JSON with a unified for
 | Script | Status | Notes |
 |---|---|---|
 | `scan_project.py` | partial | Basic scan works; broader CI, monorepo, and test-framework detection can improve. |
+| `generate_code_graph.py` | partial | Lightweight static scanner for file nodes, imports, route/API strings, docs, tests, package scripts, and configs. |
+| `validate_code_graph.py` | partial | Validates JSON shape, node/edge references, evidence, confidence, claim type, and optional path existence. |
 | `check_commands.py` | partial | Parses tables and code blocks; validates against package.json, Makefile, and CI workflows. |
 | `validate_context_map.py` | partial | Detects missing references and supports MISSING_CONTEXT markers. |
 | `check_paths.py` | stub/partial | Path parsing is rough. |
@@ -162,6 +182,7 @@ All scripts are in `scripts/`. Scripts output structured JSON with a unified for
 - `evals/evals.json` exists with behavioral eval definitions.
 - `evals/fixtures/` is populated with controlled fixture projects.
 - `scripts/run_evals.py` performs static fixture and eval-definition checks.
+- Code Graph eval definitions cover relationship extraction, validation failure modes, and graph-aware context behavior.
 - Full behavioral testing still requires a model-based `skill-quality-evaluation` run.
 
 See `evals/README.md` for detailed verification procedures.
@@ -173,6 +194,12 @@ See `evals/README.md` for detailed verification procedures.
 ```bash
 # Scan project structure
 python scripts/scan_project.py /path/to/project
+
+# Generate lightweight relationship graph
+python scripts/generate_code_graph.py /path/to/project --output /path/to/code_graph.json
+
+# Validate relationship graph
+python scripts/validate_code_graph.py /path/to/code_graph.json [/path/to/project]
 
 # Validate commands come from real config
 python scripts/check_commands.py /path/to/harness /path/to/project
@@ -201,13 +228,15 @@ Every non-obvious claim in generated harness files must include:
 
 Never present inferred as confirmed fact. Never generate business rules or architecture decisions without source.
 
+Code Graph follows the same rule: every edge must be traceable to observed code, config, docs, command output, or an explicitly marked inference.
+
 ---
 
 ## Two Rules That Prevent Template-First Harness
 
 ### 1. Create files lazily
 
-Only create files that have a real job and evidence-backed content. Do not create ADRs, domain files, multi-context structures, local AGENTS.md files, or known-risk files only to make the tree look complete.
+Only create files that have a real job and evidence-backed content. Do not create ADRs, domain files, multi-context structures, local AGENTS.md files, known-risk files, code graph files, or empty TODO files only to make the tree look complete.
 
 ### 2. Grill before write
 
