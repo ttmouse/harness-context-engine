@@ -1,6 +1,6 @@
 ---
 name: harness-context-engine
-description: Generates, evaluates, syncs, and optimizes AI-agent harness context for software projects. Use when creating AGENTS.md, CONTEXT-MAP.md, .harness files, evaluating existing harness quality, syncing harness after project changes, creating task context packs, or reviewing harness diffs.
+description: Generates, evaluates, syncs, and optimizes AI-agent harness context for software projects. Use when creating AGENTS.md, CONTEXT-MAP.md, .harness files, evaluating existing harness quality, syncing harness after project changes, creating task context packs, building code graphs, or reviewing harness diffs.
 ---
 
 # Harness Context Engine
@@ -17,6 +17,8 @@ Harness context is for agent operation, not human documentation. Generate the sm
 |---|---|---|
 | generate harness / bootstrap | Generate | references/generate.md |
 | build project profile / classify project | Project Profile | references/project-profile.md |
+| build code graph / generate relationship map / impact map | Code Graph | references/code-graph.md |
+| validate code graph / check relationship map | Code Graph Validation | references/code-graph.md, references/evaluate.md |
 | check harness / evaluate harness | Evaluate | references/evaluate.md |
 | sync harness with project / sync from diff | Project-State Sync | references/project-state-sync.md |
 | publish harness / sync wiki | Publication Sync | references/publication-sync.md |
@@ -40,6 +42,7 @@ Every non-obvious claim must include:
 - Never present inferred as confirmed fact
 - Never generate business rules / architecture decisions / commands without source
 - Mark inferred: `INFERRED`, `LOW CONFIDENCE`, `NEEDS HUMAN REVIEW`
+- Code Graph edges must follow the same source/confidence/type rule
 - See: references/source-confidence.md
 
 ---
@@ -55,6 +58,7 @@ Every non-obvious claim must include:
 7. Prefer scripts for deterministic checks
 8. Run Evaluate after Generate or Project-State Sync
 9. Publication Sync is blocked if Evaluate has hard failures
+10. Code Graph is optional and must be generated only when relationship evidence improves routing, impact analysis, or Context Pack precision
 
 ---
 
@@ -62,6 +66,8 @@ Every non-obvious claim must include:
 
 ```
 Project Scan
+  ↓
+Optional Code Relationship Scan
   ↓
 Project Profile
   ↓
@@ -73,6 +79,8 @@ Evaluate
 ```
 
 Never jump directly from project scan to file generation. The Project Profile is the decision layer that prevents template-first harness generation.
+
+Use Code Relationship Scan only when the project structure or task complexity makes relationship evidence useful. Do not generate a graph for tiny projects just because the capability exists.
 
 ---
 
@@ -87,6 +95,7 @@ Do not create:
 - multi-context structures for simple projects
 - local AGENTS.md without real independent subprojects
 - known-risks.md without observed or explicitly provided risks
+- code graph files for simple projects where a graph would only restate the directory tree
 - empty TODO files merely to satisfy structure
 
 Use UNKNOWN / NEEDS HUMAN REVIEW instead of filling blank sections with guesses.
@@ -100,6 +109,8 @@ Run these for deterministic checks. See scripts/ directory.
 | Script | What it checks |
 |---|---|
 | scripts/scan_project.py | Project structure, language, framework, package scripts, CI, monorepo clues — **implemented** |
+| scripts/generate_code_graph.py | Lightweight relationship evidence graph from observable files, imports, routes, API strings, docs, tests, and configs — **partial** |
+| scripts/validate_code_graph.py | Validates code_graph.json schema, node/edge references, evidence, confidence, and optional path existence — **partial** |
 | scripts/check_commands.py | Commands come from real config files — **implemented** |
 | scripts/validate_context_map.py | CONTEXT-MAP references, MISSING_CONTEXT detection — **implemented** |
 | scripts/check_paths.py | Harness-referenced paths exist in project — **partial** |
@@ -107,7 +118,7 @@ Run these for deterministic checks. See scripts/ directory.
 | scripts/compare_harness_to_project.py | Project changes make harness stale — **partial** |
 | scripts/validate_harness_diff.py | Harness changes do not weaken controls — **partial** |
 | scripts/run_evals.py | Eval fixture integrity checks — **implemented** |
-| scripts/check_skill_repo.py | Self-check: format, compile, fixtures — **implemented** |
+| scripts/check_skill_repo.py | Self-check: format, compile, fixtures, and structural issues — **implemented** |
 
 ---
 
@@ -122,9 +133,14 @@ Run these for deterministic checks. See scripts/ directory.
   .harness/working-boundaries.md, .harness/testing-and-verification.md
 
 冷（on demand）:
+  .harness/code-graph/code_graph.json,
+  .harness/code-graph/impact_map.md,
+  .harness/code-graph/feature_trace.md,
   .harness/code-review.md, .harness/failure-analysis.md,
   .harness/known-risks.md, docs/adr/, docs/agents/
 ```
+
+Code Graph belongs to cold context. Do not load the full graph for every task. Use it when creating a Context Pack, analyzing impact, planning refactors, or tracing cross-module relationships.
 
 ---
 
